@@ -11,6 +11,7 @@ data class ProductoConCategoria(
     val precioVenta: Double,
     val categoriaId: Int?,
     val activo: Boolean,
+    val stockMinimo: Int,
     val categoriaNombre: String?
 )
 
@@ -51,4 +52,10 @@ interface ProductoDao {
 
     @Query("UPDATE productos SET activo = :activo WHERE id = :id")
     suspend fun setActivo(id: Int, activo: Boolean)
+
+    @Query("UPDATE productos SET stockMinimo = :stockMinimo WHERE id = :id")
+    suspend fun setStockMinimo(id: Int, stockMinimo: Int)
+
+    @Query("DELETE FROM productos")
+    suspend fun deleteAll()
 }

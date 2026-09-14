@@ -3,14 +3,17 @@ package com.dosamigos.control
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.FactCheck
 import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -28,7 +31,20 @@ sealed class Pantalla(val ruta: String, val titulo: String) {
     object Productos : Pantalla("productos", "Productos")
     object Movimientos : Pantalla("movimientos", "Movimientos")
     object Ipv : Pantalla("ipv", "IPV")
+    object Ajustes : Pantalla("ajustes", "Ajustes")
 }
+
+private val EsquemaClaro = lightColorScheme(
+    primary = Color(0xFF6F4E37),
+    secondary = Color(0xFF8D6E63),
+    tertiary = Color(0xFFA1887F)
+)
+
+private val EsquemaOscuro = darkColorScheme(
+    primary = Color(0xFFD7B899),
+    secondary = Color(0xFFBCAAA4),
+    tertiary = Color(0xFF8D6E63)
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,9 +53,10 @@ class MainActivity : ComponentActivity() {
         val factory = ViewModelFactory(db)
 
         setContent {
-            MaterialTheme {
+            val esquema = if (isSystemInDarkTheme()) EsquemaOscuro else EsquemaClaro
+            MaterialTheme(colorScheme = esquema) {
                 val navController = rememberNavController()
-                val items = listOf(Pantalla.Categorias, Pantalla.Productos, Pantalla.Movimientos, Pantalla.Ipv)
+                val items = listOf(Pantalla.Categorias, Pantalla.Productos, Pantalla.Movimientos, Pantalla.Ipv, Pantalla.Ajustes)
 
                 Scaffold(
                     bottomBar = {
@@ -53,6 +70,7 @@ class MainActivity : ComponentActivity() {
                                     Pantalla.Productos -> Icons.Default.Inventory
                                     Pantalla.Movimientos -> Icons.Default.SwapVert
                                     Pantalla.Ipv -> Icons.Default.FactCheck
+                                    Pantalla.Ajustes -> Icons.Default.Settings
                                 }
                                 NavigationBarItem(
                                     icon = { Icon(icono, contentDescription = pantalla.titulo) },
@@ -97,6 +115,9 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Pantalla.Ipv.ruta) {
                             IpvScreen(viewModel(factory = factory))
+                        }
+                        composable(Pantalla.Ajustes.ruta) {
+                            AjustesScreen(viewModel(factory = factory))
                         }
                     }
                 }

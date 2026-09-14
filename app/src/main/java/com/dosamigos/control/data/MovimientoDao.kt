@@ -35,4 +35,7 @@ interface MovimientoDao {
 
     @Delete
     suspend fun delete(movimiento: Movimiento)
+
+    @Query("DELETE FROM movimientos")
+    suspend fun deleteAll()
 }

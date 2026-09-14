@@ -12,6 +12,7 @@ class ViewModelFactory(private val db: AppDatabase) : ViewModelProvider.Factory 
             ProductoViewModel::class.java -> ProductoViewModel(db) as T
             MovimientoViewModel::class.java -> MovimientoViewModel(db) as T
             IpvViewModel::class.java -> IpvViewModel(db) as T
+            BackupViewModel::class.java -> BackupViewModel(db) as T
             else -> throw IllegalArgumentException("ViewModel desconocido")
         }
     }

@@ -24,4 +24,10 @@ interface IpvDao {
     @Transaction
     @Query("SELECT * FROM ipv WHERE id = :id")
     suspend fun getPorId(id: Int): IpvConDetalles?
+
+    @Query("DELETE FROM ipv")
+    suspend fun deleteAllIpv()
+
+    @Query("DELETE FROM ipv_detalle")
+    suspend fun deleteAllDetalles()
 }

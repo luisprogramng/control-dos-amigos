@@ -14,10 +14,13 @@ class ProductoViewModel(private val db: AppDatabase) : ViewModel() {
     val categorias = db.categoriaDao().getAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun agregar(nombre: String, stock: Int, pCompra: Double, pVenta: Double, categoriaId: Int?) =
+    fun agregar(nombre: String, stock: Int, pCompra: Double, pVenta: Double, categoriaId: Int?, stockMinimo: Int = 0) =
         viewModelScope.launch {
             db.productoDao().insert(
-                Producto(nombre = nombre, cantidadStock = stock, precioCompra = pCompra, precioVenta = pVenta, categoriaId = categoriaId)
+                Producto(
+                    nombre = nombre, cantidadStock = stock, precioCompra = pCompra,
+                    precioVenta = pVenta, categoriaId = categoriaId, stockMinimo = stockMinimo
+                )
             )
         }
 
@@ -31,6 +34,10 @@ class ProductoViewModel(private val db: AppDatabase) : ViewModel() {
 
     fun cambiarActivo(id: Int, activo: Boolean) = viewModelScope.launch {
         db.productoDao().setActivo(id, activo)
+    }
+
+    fun cambiarStockMinimo(id: Int, stockMinimo: Int) = viewModelScope.launch {
+        db.productoDao().setStockMinimo(id, stockMinimo)
     }
 
     /** Entrada rápida de stock directamente desde la lista de productos. */

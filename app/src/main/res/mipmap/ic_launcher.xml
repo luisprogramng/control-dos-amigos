@@ -1,0 +1,39 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Fondo -->
+    <path
+        android:fillColor="#F5E6D3"
+        android:pathData="M0,0h108v108h-108z" />
+
+    <!-- Vapor -->
+    <path
+        android:fillColor="#8D6E63"
+        android:pathData="M42,24c-3,4 3,6 0,10c-3,4 3,6 0,10" />
+    <path
+        android:fillColor="#8D6E63"
+        android:pathData="M56,24c-3,4 3,6 0,10c-3,4 3,6 0,10" />
+
+    <!-- Cuerpo de la taza -->
+    <path
+        android:fillColor="#6F4E37"
+        android:pathData="M32,50 L76,50 L72,82 C71,88 66,92 60,92 L48,92 C42,92 37,88 36,82 Z" />
+
+    <!-- Café (superficie) -->
+    <path
+        android:fillColor="#3E2723"
+        android:pathData="M35,52 L73,52 L72,58 L36,58 Z" />
+
+    <!-- Asa -->
+    <path
+        android:fillColor="#6F4E37"
+        android:pathData="M76,56 C90,56 90,80 76,78 L76,70 C82,71 82,63 76,64 Z" />
+
+    <!-- Plato -->
+    <path
+        android:fillColor="#8D6E63"
+        android:pathData="M26,92 L82,92 C82,96 78,98 72,98 L36,98 C30,98 26,96 26,92 Z" />
+</vector>

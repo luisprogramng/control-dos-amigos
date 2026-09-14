@@ -20,5 +20,6 @@ data class Producto(
     val precioCompra: Double,
     val precioVenta: Double,
     val categoriaId: Int?,
-    val activo: Boolean = true
+    val activo: Boolean = true,
+    val stockMinimo: Int = 0
 )
