@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dosamigos.control.data.*
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
@@ -22,13 +23,10 @@ class BackupViewModel(private val db: AppDatabase) : ViewModel() {
     fun exportar(context: Context, onListo: (String?) -> Unit) {
         viewModelScope.launch {
             try {
-                val categorias = db.categoriaDao().getAll().let { flow ->
-                    // lectura puntual del valor actual
-                    kotlinx.coroutines.flow.first(flow)
-                }
-                val productos = kotlinx.coroutines.flow.first(db.productoDao().getAllConCategoria())
-                val movimientos = kotlinx.coroutines.flow.first(db.movimientoDao().getAllConProducto())
-                val historialIpv = kotlinx.coroutines.flow.first(db.ipvDao().getHistorial())
+                val categorias = db.categoriaDao().getAll().first()
+                val productos = db.productoDao().getAllConCategoria().first()
+                val movimientos = db.movimientoDao().getAllConProducto().first()
+                val historialIpv = db.ipvDao().getHistorial().first()
 
                 val json = JSONObject()
 
