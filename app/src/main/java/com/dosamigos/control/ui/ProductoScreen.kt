@@ -7,6 +7,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.RemoveCircle
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +23,9 @@ fun ProductoScreen(vm: ProductoViewModel, onAbrirDetalle: (Int) -> Unit) {
     val categorias by vm.categorias.collectAsState()
     var mostrarDialogo by remember { mutableStateOf(false) }
     var productoEntradaRapida by remember { mutableStateOf<Int?>(null) }
+    var productoSalidaRapida by remember { mutableStateOf<Int?>(null) }
     var cantidadRapida by remember { mutableStateOf("") }
+    var busqueda by remember { mutableStateOf("") }
 
     var nombre by remember { mutableStateOf("") }
     var stock by remember { mutableStateOf("") }
@@ -30,6 +34,14 @@ fun ProductoScreen(vm: ProductoViewModel, onAbrirDetalle: (Int) -> Unit) {
     var categoriaSeleccionada by remember { mutableStateOf<Int?>(null) }
     var expandido by remember { mutableStateOf(false) }
 
+    val productosFiltrados = remember(productos, busqueda) {
+        if (busqueda.isBlank()) productos
+        else productos.filter {
+            it.nombre.contains(busqueda, ignoreCase = true) ||
+            (it.categoriaNombre?.contains(busqueda, ignoreCase = true) == true)
+        }
+    }
+
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = { mostrarDialogo = true }) {
@@ -37,63 +49,80 @@ fun ProductoScreen(vm: ProductoViewModel, onAbrirDetalle: (Int) -> Unit) {
             }
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier.padding(padding).fillMaxSize().padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(productos, key = { it.id }) { producto ->
-                Card(
-                    onClick = { onAbrirDetalle(producto.id) }
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                producto.nombre,
-                                fontWeight = FontWeight.Bold,
-                                color = if (producto.activo) MaterialTheme.colorScheme.onSurface
-                                        else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Row {
-                                IconButton(onClick = {
-                                    productoEntradaRapida = producto.id
-                                    cantidadRapida = ""
-                                }) {
-                                    Icon(Icons.Default.AddCircle, contentDescription = "Entrada rápida")
-                                }
-                                IconButton(onClick = {
-                                    vm.eliminar(
-                                        com.dosamigos.control.data.Producto(
-                                            id = producto.id, nombre = producto.nombre,
-                                            cantidadStock = producto.cantidadStock,
-                                            precioCompra = producto.precioCompra,
-                                            precioVenta = producto.precioVenta,
-                                            categoriaId = producto.categoriaId,
-                                            activo = producto.activo
+        Column(Modifier.padding(padding).fillMaxSize().padding(horizontal = 12.dp)) {
+            OutlinedTextField(
+                value = busqueda,
+                onValueChange = { busqueda = it },
+                label = { Text("Buscar producto o categoría") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp)
+            )
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(productosFiltrados, key = { it.id }) { producto ->
+                    Card(
+                        onClick = { onAbrirDetalle(producto.id) }
+                    ) {
+                        Column(Modifier.padding(16.dp)) {
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    producto.nombre,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (producto.activo) MaterialTheme.colorScheme.onSurface
+                                            else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Row {
+                                    IconButton(onClick = {
+                                        productoEntradaRapida = producto.id
+                                        cantidadRapida = ""
+                                    }) {
+                                        Icon(Icons.Default.AddCircle, contentDescription = "Entrada rápida")
+                                    }
+                                    IconButton(onClick = {
+                                        productoSalidaRapida = producto.id
+                                        cantidadRapida = ""
+                                    }) {
+                                        Icon(Icons.Default.RemoveCircle, contentDescription = "Salida rápida")
+                                    }
+                                    IconButton(onClick = {
+                                        vm.eliminar(
+                                            com.dosamigos.control.data.Producto(
+                                                id = producto.id, nombre = producto.nombre,
+                                                cantidadStock = producto.cantidadStock,
+                                                precioCompra = producto.precioCompra,
+                                                precioVenta = producto.precioVenta,
+                                                categoriaId = producto.categoriaId,
+                                                activo = producto.activo
+                                            )
                                         )
-                                    )
-                                }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Eliminar")
+                                    }) {
+                                        Icon(Icons.Default.Delete, contentDescription = "Eliminar")
+                                    }
                                 }
                             }
-                        }
-                        Text("Categoría: ${producto.categoriaNombre ?: "Sin categoría"}")
-                        Text("Stock: ${producto.cantidadStock}")
-                        Text("Compra: $${producto.precioCompra}  ·  Venta: $${producto.precioVenta}")
+                            Text("Categoría: ${producto.categoriaNombre ?: "Sin categoría"}")
+                            Text("Stock: ${producto.cantidadStock}")
+                            Text("Compra: $${producto.precioCompra}  ·  Venta: $${producto.precioVenta}")
 
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(if (producto.activo) "Activo" else "Inactivo", style = MaterialTheme.typography.bodySmall)
-                            Switch(
-                                checked = producto.activo,
-                                onCheckedChange = { vm.cambiarActivo(producto.id, it) }
-                            )
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(if (producto.activo) "Activo" else "Inactivo", style = MaterialTheme.typography.bodySmall)
+                                Switch(
+                                    checked = producto.activo,
+                                    onCheckedChange = { vm.cambiarActivo(producto.id, it) }
+                                )
+                            }
                         }
                     }
                 }
@@ -125,6 +154,34 @@ fun ProductoScreen(vm: ProductoViewModel, onAbrirDetalle: (Int) -> Unit) {
             },
             dismissButton = {
                 TextButton(onClick = { productoEntradaRapida = null }) { Text("Cancelar") }
+            }
+        )
+    }
+
+    // Diálogo de salida rápida
+    if (productoSalidaRapida != null) {
+        AlertDialog(
+            onDismissRequest = { productoSalidaRapida = null },
+            title = { Text("Salida rápida de stock") },
+            text = {
+                OutlinedTextField(
+                    value = cantidadRapida,
+                    onValueChange = { cantidadRapida = it },
+                    label = { Text("Cantidad a restar") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val cant = cantidadRapida.toIntOrNull() ?: 0
+                    if (cant > 0) {
+                        vm.salidaRapida(productoSalidaRapida!!, cant)
+                    }
+                    productoSalidaRapida = null
+                }) { Text("Guardar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { productoSalidaRapida = null }) { Text("Cancelar") }
             }
         )
     }
