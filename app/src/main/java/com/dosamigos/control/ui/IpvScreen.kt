@@ -30,6 +30,7 @@ fun IpvScreen(vm: IpvViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HistorialIpv(vm: IpvViewModel, onNuevo: () -> Unit) {
     val historial by vm.historial.collectAsState()
@@ -74,6 +75,7 @@ private fun HistorialIpv(vm: IpvViewModel, onNuevo: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NuevoConteoIpv(vm: IpvViewModel, onTerminado: () -> Unit) {
     val productos by vm.productosActivos.collectAsState()
