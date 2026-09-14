@@ -22,6 +22,14 @@ interface MovimientoDao {
     """)
     fun getAllConProducto(): Flow<List<MovimientoConProducto>>
 
+    @Query("""
+        SELECT m.*, p.nombre AS productoNombre FROM movimientos m
+        JOIN productos p ON m.productoId = p.id
+        WHERE m.productoId = :productoId
+        ORDER BY m.fecha DESC
+    """)
+    fun getPorProducto(productoId: Int): Flow<List<MovimientoConProducto>>
+
     @Insert
     suspend fun insert(movimiento: Movimiento)
 

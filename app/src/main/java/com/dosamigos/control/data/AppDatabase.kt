@@ -6,6 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 class Converters {
     @TypeConverter
@@ -15,15 +17,48 @@ class Converters {
     fun toTipo(value: String): TipoMovimiento = TipoMovimiento.valueOf(value)
 }
 
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE productos ADD COLUMN activo INTEGER NOT NULL DEFAULT 1")
+
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS ipv (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                fecha INTEGER NOT NULL
+            )
+            """.trimIndent()
+        )
+
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS ipv_detalle (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                ipvId INTEGER NOT NULL,
+                productoId INTEGER,
+                productoNombre TEXT NOT NULL,
+                categoriaNombre TEXT,
+                stockSistema INTEGER NOT NULL,
+                stockContado INTEGER NOT NULL,
+                diferencia INTEGER NOT NULL,
+                FOREIGN KEY(ipvId) REFERENCES ipv(id) ON DELETE CASCADE,
+                FOREIGN KEY(productoId) REFERENCES productos(id) ON DELETE SET NULL
+            )
+            """.trimIndent()
+        )
+    }
+}
+
 @Database(
-    entities = [Categoria::class, Producto::class, Movimiento::class],
-    version = 1
+    entities = [Categoria::class, Producto::class, Movimiento::class, Ipv::class, IpvDetalle::class],
+    version = 2
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun categoriaDao(): CategoriaDao
     abstract fun productoDao(): ProductoDao
     abstract fun movimientoDao(): MovimientoDao
+    abstract fun ipvDao(): IpvDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
@@ -34,7 +69,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "control_dos_amigos_db"
-                ).build().also { INSTANCE = it }
+                )
+                    .addMigrations(MIGRATION_1_2)
+                    .build().also { INSTANCE = it }
             }
         }
     }

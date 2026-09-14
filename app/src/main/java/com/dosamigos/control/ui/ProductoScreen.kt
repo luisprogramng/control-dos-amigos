@@ -5,19 +5,23 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductoScreen(vm: ProductoViewModel) {
+fun ProductoScreen(vm: ProductoViewModel, onAbrirDetalle: (Int) -> Unit) {
     val productos by vm.productos.collectAsState()
     val categorias by vm.categorias.collectAsState()
     var mostrarDialogo by remember { mutableStateOf(false) }
+    var productoEntradaRapida by remember { mutableStateOf<Int?>(null) }
+    var cantidadRapida by remember { mutableStateOf("") }
 
     var nombre by remember { mutableStateOf("") }
     var stock by remember { mutableStateOf("") }
@@ -38,36 +42,94 @@ fun ProductoScreen(vm: ProductoViewModel) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(productos, key = { it.id }) { producto ->
-                Card {
+                Card(
+                    onClick = { onAbrirDetalle(producto.id) }
+                ) {
                     Column(Modifier.padding(16.dp)) {
                         Row(
                             Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(producto.nombre, fontWeight = FontWeight.Bold)
-                            IconButton(onClick = {
-                                vm.eliminar(
-                                    com.dosamigos.control.data.Producto(
-                                        id = producto.id, nombre = producto.nombre,
-                                        cantidadStock = producto.cantidadStock,
-                                        precioCompra = producto.precioCompra,
-                                        precioVenta = producto.precioVenta,
-                                        categoriaId = producto.categoriaId
+                            Text(
+                                producto.nombre,
+                                fontWeight = FontWeight.Bold,
+                                color = if (producto.activo) MaterialTheme.colorScheme.onSurface
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Row {
+                                IconButton(onClick = {
+                                    productoEntradaRapida = producto.id
+                                    cantidadRapida = ""
+                                }) {
+                                    Icon(Icons.Default.AddCircle, contentDescription = "Entrada rápida")
+                                }
+                                IconButton(onClick = {
+                                    vm.eliminar(
+                                        com.dosamigos.control.data.Producto(
+                                            id = producto.id, nombre = producto.nombre,
+                                            cantidadStock = producto.cantidadStock,
+                                            precioCompra = producto.precioCompra,
+                                            precioVenta = producto.precioVenta,
+                                            categoriaId = producto.categoriaId,
+                                            activo = producto.activo
+                                        )
                                     )
-                                )
-                            }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Eliminar")
+                                }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Eliminar")
+                                }
                             }
                         }
                         Text("Categoría: ${producto.categoriaNombre ?: "Sin categoría"}")
                         Text("Stock: ${producto.cantidadStock}")
                         Text("Compra: $${producto.precioCompra}  ·  Venta: $${producto.precioVenta}")
+
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(if (producto.activo) "Activo" else "Inactivo", style = MaterialTheme.typography.bodySmall)
+                            Switch(
+                                checked = producto.activo,
+                                onCheckedChange = { vm.cambiarActivo(producto.id, it) }
+                            )
+                        }
                     }
                 }
             }
         }
     }
 
+    // Diálogo de entrada rápida
+    if (productoEntradaRapida != null) {
+        AlertDialog(
+            onDismissRequest = { productoEntradaRapida = null },
+            title = { Text("Entrada rápida de stock") },
+            text = {
+                OutlinedTextField(
+                    value = cantidadRapida,
+                    onValueChange = { cantidadRapida = it },
+                    label = { Text("Cantidad a agregar") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val cant = cantidadRapida.toIntOrNull() ?: 0
+                    if (cant > 0) {
+                        vm.entradaRapida(productoEntradaRapida!!, cant)
+                    }
+                    productoEntradaRapida = null
+                }) { Text("Guardar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { productoEntradaRapida = null }) { Text("Cancelar") }
+            }
+        )
+    }
+
+    // Diálogo de nuevo producto
     if (mostrarDialogo) {
         AlertDialog(
             onDismissRequest = { mostrarDialogo = false },

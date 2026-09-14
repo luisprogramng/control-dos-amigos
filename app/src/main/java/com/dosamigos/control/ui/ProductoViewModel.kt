@@ -28,4 +28,19 @@ class ProductoViewModel(private val db: AppDatabase) : ViewModel() {
     fun eliminar(producto: Producto) = viewModelScope.launch {
         db.productoDao().delete(producto)
     }
+
+    fun cambiarActivo(id: Int, activo: Boolean) = viewModelScope.launch {
+        db.productoDao().setActivo(id, activo)
+    }
+
+    /** Entrada rápida de stock directamente desde la lista de productos. */
+    fun entradaRapida(productoId: Int, cantidad: Int) = viewModelScope.launch {
+        if (cantidad <= 0) return@launch
+        db.movimientoDao().insert(
+            Movimiento(productoId = productoId, tipo = TipoMovimiento.ENTRADA, cantidad = cantidad, nota = "Entrada rápida")
+        )
+        db.productoDao().ajustarStock(productoId, cantidad)
+    }
+
+    fun movimientosDe(productoId: Int) = db.movimientoDao().getPorProducto(productoId)
 }
